@@ -16,7 +16,7 @@ const Home = () => {
     e.preventDefault();
     try {
       const response = await axios.post("http://localhost:3000/jobs", {
-        job: newJob,
+        name: newJob,
       });
       console.log("Thêm công việc thành công:", response.data);
       e.target.reset();
