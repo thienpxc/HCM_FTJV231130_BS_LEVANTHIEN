@@ -6,14 +6,22 @@ import { categoryAction } from "../store/slices/jobs.slice";
 
 const Home = () => {
   const dispatch = useDispatch();
+  const [warning, setWarning] = useState(false);
   const [newJob, setNewJob] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const categoryStore = useSelector((store) => store.categoryStore);
   const [selectedJobId, setSelectedJobId] = useState(null);
   console.log(categoryStore);
 
+
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!newJob.trim()) {
+      
+      setWarning(true);
+      return; 
+    }
     try {
       const response = await axios.post("http://localhost:3000/jobs", {
         name: newJob,
@@ -24,8 +32,14 @@ const Home = () => {
       dispatch(categoryAction.jobAll());
     } catch (error) {
       console.error("Lỗi khi thêm công việc:", error);
+      setWarning(true);
     }
   };
+  const handleEditIconClick = (id) => {
+    dispatch(categoryAction.editjob({id:id,name:"edited"}))
+    
+  }
+  
 
   const handleChange = (e) => {
     setNewJob(e.target.value);
@@ -37,7 +51,8 @@ const Home = () => {
       .delete(`http://localhost:3000/jobs/${jobId}`)
       .then((res) => {
         console.log("Xóa công việc thành công: ", res);
-        setIsVisible(false); // Đóng modal sau khi xóa thành công
+        dispatch(categoryAction.jobAll());
+        setIsVisible(false); 
       })
       .catch((error) => {
         console.error("Lỗi khi xóa công việc:", error);
@@ -45,11 +60,11 @@ const Home = () => {
   };
 
   const cancelDelete = () => {
-    setIsVisible(false); // Đóng modal nếu người dùng chọn hủy
+    setIsVisible(false); 
   };
   const handleTrashIconClick = (jobId) => {
-    setSelectedJobId(jobId); // Set the selected jobId
-    setIsVisible(true); // Mở modal xác nhận khi người dùng click vào icon xóa
+    setSelectedJobId(jobId); 
+    setIsVisible(true); 
   };
 
   return (
@@ -117,7 +132,9 @@ const Home = () => {
                                 </label>
                               </div>
                               <div className="d-flex gap-3">
-                                <i className="fas fa-pen-to-square text-warning"></i>
+                                <i className="fas fa-pen-to-square text-warning" onClick={()=>{
+                                  handleEditIconClick(item.id)
+                                }}></i>
                                 <i
                                   className="far fa-trash-can text-danger"
                                   onClick={() => handleTrashIconClick(item.id)}
@@ -160,17 +177,29 @@ const Home = () => {
       </div>
 
       {/* Modal Cảnh báo */}
-      <div className="overlay" style={{ display: "none" }}>
+      <div className="overlay" hidden={!warning}>
         <div className="modal-custom">
           <div className="modal-header-custom">
             <h5>Cảnh báo</h5>
-            <i className="fas fa-xmark"></i>
+            <i
+              className="fas fa-xmark"
+              onClick={() => {
+                setWarning(false);
+              }}
+            ></i>
           </div>
           <div className="modal-body-custom">
             <p>Tên công việc không được phép để trống.</p>
           </div>
           <div className="modal-footer-footer">
-            <button className="btn btn-light">Đóng</button>
+            <button
+              className="btn btn-light"
+              onClick={() => {
+                setWarning(false);
+              }}
+            >
+              Đóng
+            </button>
           </div>
         </div>
       </div>
